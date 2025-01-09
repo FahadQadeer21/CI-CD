@@ -25,13 +25,18 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Send Slack Notification
-      - name: Notify Slack
+      # Send Slack Notification on success
+      - name: Notify Slack - Success
+        if: success()  # This condition will trigger when the job is successful
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
         run: |
-          if [ ${{ job.status }} == 'success' ]; then
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ CI/CD Pipeline succeeded for React Native project."}' $SLACK_WEBHOOK_URL
-          else
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ CI/CD Pipeline failed for React Native project."}' $SLACK_WEBHOOK_URL
-          fi
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ CI/CD Pipeline succeeded for React Native project."}' $SLACK_WEBHOOK_URL
+
+      # Send Slack Notification on failure
+      - name: Notify Slack - Failure
+        if: failure()  # This condition will trigger when the job fails
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ CI/CD Pipeline failed for React Native project."}' $SLACK_WEBHOOK_URL
