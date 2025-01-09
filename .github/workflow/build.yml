@@ -1,0 +1,66 @@
+name: Build APK and Notify Slack
+
+on:
+  push:
+    branches:
+      - main # Adjust to your main branch name
+
+jobs:
+  build-apk:
+    name: Build APK on macOS
+    runs-on: macos-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16' # Use the version compatible with your project
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Install Android dependencies
+      - name: Install Android SDK
+        run: |
+          brew install --cask android-platform-tools
+          yes | sdkmanager --licenses
+          sdkmanager "build-tools;31.0.0" "platforms;android-31"
+
+      # Build APK
+      - name: Build APK
+        env:
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease -Pandroid.injected.signing.store.password=$STORE_PASSWORD -Pandroid.injected.signing.key.alias=$KEY_ALIAS -Pandroid.injected.signing.key.password=$KEY_PASSWORD
+
+      # Upload APK as artifact
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: app-release.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+
+      # Send Slack Notification
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          APK_URL=$(gh run list --json artifacts --jq '.[] | .artifacts[] | select(.name=="app-release.apk") | .url')
+          curl -X POST -H 'Content-type: application/json' --data "{
+            \"text\": \"The APK has been successfully built and uploaded.\",
+            \"attachments\": [
+              {
+                \"title\": \"Download APK\",
+                \"title_link\": \"$APK_URL\"
+              }
+            ]
+          }" $SLACK_WEBHOOK_URL
