@@ -29,14 +29,9 @@ jobs:
       - name: Notify Slack
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          APK_URL=$(gh run list --json artifacts --jq '.[] | .artifacts[] | select(.name=="app-release.apk") | .url')
-          curl -X POST -H 'Content-type: application/json' --data "{
-            \"text\": \"The APK has been successfully built and uploaded.\",
-            \"attachments\": [
-              {
-                \"title\": \"Download APK\",
-                \"title_link\": \"$APK_URL\"
-              }
-            ]
-          }" $SLACK_WEBHOOK_URL
+          run: |
+            if [ ${{ job.status }} == 'success' ]; then
+              curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ CI/CD Pipeline succeeded for React Native project."}' $SLACK_WEBHOOK_URL
+            else
+              curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ CI/CD Pipeline failed for React Native project."}' $SLACK_WEBHOOK_URL
+            fi
