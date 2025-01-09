@@ -6,7 +6,7 @@ on:
       - main # Adjust to your main branch name
 
 jobs:
-  build-apk:
+  build:
     name: Build APK on macOS
     runs-on: macos-latest
 
