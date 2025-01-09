@@ -25,39 +25,6 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # Install Android dependencies
-      # Install Android SDK
-      - name: Install Android SDK
-        run: |
-          # Download and install the Android SDK tools
-          curl -o android-sdk.zip https://dl.google.com/android/repository/commandlinetools-mac-8512546_latest.zip
-          unzip android-sdk.zip -d $HOME/android-sdk
-          rm android-sdk.zip
-          export ANDROID_HOME=$HOME/android-sdk
-          export PATH=$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH
-      
-          # Accept licenses and install necessary packages
-          yes | $ANDROID_HOME/tools/bin/sdkmanager --licenses
-          $ANDROID_HOME/tools/bin/sdkmanager "platform-tools" "build-tools;31.0.0" "platforms;android-31"
-
-
-      # Build APK
-      - name: Build APK
-        env:
-          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: |
-          cd android
-          ./gradlew assembleRelease -Pandroid.injected.signing.store.password=$STORE_PASSWORD -Pandroid.injected.signing.key.alias=$KEY_ALIAS -Pandroid.injected.signing.key.password=$KEY_PASSWORD
-
-      # Upload APK as artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
-        with:
-          name: app-release.apk
-          path: android/app/build/outputs/apk/release/app-release.apk
-
       # Send Slack Notification
       - name: Notify Slack
         env:
