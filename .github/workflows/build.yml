@@ -26,13 +26,14 @@ jobs:
         run: npm install
 
       # Install Android dependencies
-     - name: Install Android SDK
+      - name: Install Android SDK
         run: |
           brew install --cask android-sdk
           export ANDROID_HOME="/opt/homebrew/share/android-sdk"
           export PATH="$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$ANDROID_HOME/platform-tools:$PATH"
           yes | sdkmanager --licenses
           sdkmanager "build-tools;31.0.0" "platforms;android-31"
+
       # Build APK
       - name: Build APK
         env:
