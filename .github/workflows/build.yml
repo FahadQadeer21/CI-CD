@@ -3,7 +3,7 @@ name: Build APK and Notify Slack
 on:
   push:
     branches:
-      - main # Adjust to your main branch name
+      - '*' # Adjust to your main branch name
 
 jobs:
   build:
