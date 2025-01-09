@@ -29,9 +29,9 @@ jobs:
       - name: Notify Slack
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          run: |
-            if [ ${{ job.status }} == 'success' ]; then
-              curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ CI/CD Pipeline succeeded for React Native project."}' $SLACK_WEBHOOK_URL
-            else
-              curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ CI/CD Pipeline failed for React Native project."}' $SLACK_WEBHOOK_URL
-            fi
+        run: |
+          if [ ${{ job.status }} == 'success' ]; then
+            curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ CI/CD Pipeline succeeded for React Native project."}' $SLACK_WEBHOOK_URL
+          else
+            curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ CI/CD Pipeline failed for React Native project."}' $SLACK_WEBHOOK_URL
+          fi
