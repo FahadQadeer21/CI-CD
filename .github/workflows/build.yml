@@ -11,32 +11,40 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # Checkout the repository
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-      # Set up Node.js
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
+      - name: Install Java 
+        uses: actions/setup-java@v2
         with:
-          node-version: '22' # Use the version compatible with your project
+          java-version: '20'
+          distribution: "adopt"
+          cache: "gradle"
 
-      # Install dependencies
-      - name: Install dependencies
-        run: npm install
+      - name: Change wrapper permissions
+        run: chmod +x ./android/gradlew
+      
+      - name: Validate Gradle Wrapper
+        uses: gradle/wrapper-validation-action@v1
 
-      # Send Slack Notification on success
-      - name: Notify Slack - Success
-        if: success()  # This condition will trigger when the job is successful
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with: 
+          node-version: '18'
+
+      - name: Run Yarn Install
+        run: | 
+              npm install -g yarn
+              yarn install
+
+      - name: Build App
         run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"✅ CI/CD Pipeline succeeded for React Native project."}' $SLACK_WEBHOOK_URL
+              cd ./android
+              ./gradlew assembleRelease
 
-      # Send Slack Notification on failure
-      - name: Notify Slack - Failure
-        if: failure()  # This condition will trigger when the job fails
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-        run: |
-          curl -X POST -H 'Content-type: application/json' --data '{"text":"❌ CI/CD Pipeline failed for React Native project."}' $SLACK_WEBHOOK_URL
+      - name: Upload APK to Artifacts
+        uses: actions/upload-artifact@v2
+        with: 
+            name: app
+            path: ./android/app/build/outputs/apk/release/app-release.apk
+            retention-days: 3
